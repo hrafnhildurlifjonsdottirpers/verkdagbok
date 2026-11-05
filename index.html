@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-title" content="Verkdagbók">
+<title>Verkdagbók Rafplan</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Litir: dökkblátt úr merkinu og ljósblár aðgerðahnappur, skýrt í dagsbirtu. */
+:root {
+  --bg: #e9edf0; --surface: #ffffff; --ink: #14202b; --muted: #55626e; --line: #cfd6dc;
+  --head: #14202b; --head-ink: #ffffff; --head-muted: #a9b6c1;
+  --action: #01afd8; --action-ink: #14202b; --focus: #0b63b6; --danger: #b3261e; --ok: #1a7a45;
+  --chip: #dfe5ea;
+  --display: "Barlow Condensed", "Arial Narrow", Arial, sans-serif;
+  --body: "Barlow", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f171e; --surface: #18232c; --ink: #edf1f4; --muted: #9eabb6; --line: #2d3b46;
+    --head: #0a1116; --head-ink: #ffffff; --head-muted: #94a3af;
+    --focus: #6db4f5; --danger: #ff8a80; --ok: #6fd69c; --chip: #24323d;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.45 var(--body); }
+[hidden] { display: none !important; }
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+.top { background: var(--head); color: var(--head-ink); padding: 12px max(16px, env(safe-area-inset-left, 0px)); padding-top: calc(12px + env(safe-area-inset-top, 0px)); }
+.top-inner { max-width: 1180px; margin: 0 auto; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.brand { margin: 0; font: 700 26px/1.1 var(--display); letter-spacing: .01em; }
+#sync { font-size: 13px; color: var(--head-muted); text-align: right; }
+#sync.bad { color: var(--action); }
+
+.app { max-width: 1180px; margin: 0 auto; padding: 16px max(16px, env(safe-area-inset-right, 0px)) 96px max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 24px; }
+.panel { min-width: 0; }
+h2 { margin: 0; font: 600 22px/1.2 var(--display); }
+
+form { background: var(--surface); border: 1px solid var(--line); padding: 16px; display: grid; gap: 14px; }
+.form-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.field { display: grid; gap: 4px; min-width: 0; }
+.field label { font-weight: 600; font-size: 14px; }
+.opt { font-weight: 400; color: var(--muted); }
+input, textarea { width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid var(--muted); border-radius: 3px; background: var(--surface); font-size: 16px; }
+textarea { min-height: 84px; resize: vertical; }
+input[type="date"] { -webkit-appearance: none; appearance: none; }
+.pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.hint { margin: 0; font-size: 14px; color: var(--muted); }
+.row-total { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.combo { position: relative; min-width: 0; }
+.combo input { padding-right: 44px; }
+.combo-toggle { position: absolute; top: 1px; right: 1px; width: 42px; height: 44px; border: 0; background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; }
+.combo-list { position: absolute; z-index: 20; top: calc(100% + 2px); left: 0; right: 0; margin: 0; padding: 4px 0; list-style: none; max-height: 232px; overflow-y: auto; background: var(--surface); border: 1px solid var(--muted); border-radius: 3px; box-shadow: 0 6px 20px rgba(0,0,0,.22); }
+.combo-list li { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px; padding: 9px 12px; cursor: pointer; overflow-wrap: anywhere; }
+.combo-list li:hover, .combo-list li.active { background: var(--chip); }
+.combo-list li.add { font-weight: 600; }
+
+.mat-head, .mat-row { display: grid; grid-template-columns: minmax(0, 1fr) 68px 46px; gap: 8px; align-items: center; }
+.mat-head { align-items: end; font-size: 14px; }
+.mat-head span:first-child { font-weight: 600; }
+.mat-head .mat-qty { font-weight: 600; }
+.mat-rows { display: grid; gap: 8px; }
+.icon-btn { width: 46px; height: 46px; padding: 0; border: 1px solid var(--line); border-radius: 3px; background: transparent; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; }
+.btn-add { justify-self: start; min-height: 44px; padding: 8px 12px; font-weight: 500; }
+.form-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn { min-height: 48px; padding: 10px 16px; border: 1px solid var(--muted); border-radius: 3px; background: transparent; font-weight: 600; cursor: pointer; }
+.btn:disabled { opacity: .55; cursor: default; }
+.btn-main { flex: 1 1 180px; background: var(--action); border-color: var(--action); color: var(--action-ink); font: 700 20px/1 var(--display); letter-spacing: .02em; }
+.btn-danger { color: var(--danger); border-color: var(--danger); }
+#form-error { margin: 0; color: var(--danger); font-weight: 600; }
+
+.month-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.month-bar h2 { font-size: 26px; text-align: center; flex: 1; }
+.nav { width: 46px; height: 46px; border: 1px solid var(--muted); border-radius: 3px; background: transparent; font-size: 22px; line-height: 1; cursor: pointer; }
+.summary { margin: 14px 0 12px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+.total { font: 700 34px/1 var(--display); font-variant-numeric: tabular-nums; }
+.total small { font: 400 15px/1 var(--body); color: var(--muted); margin-left: 6px; }
+#export { min-height: 46px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.chip { min-height: 38px; padding: 6px 12px; border: 1px solid transparent; border-radius: 3px; background: var(--chip); cursor: pointer; font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; max-width: 100%; overflow-wrap: anywhere; text-align: left; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+.day { margin: 18px 0 6px; font-size: 14px; font-weight: 600; color: var(--muted); display: flex; justify-content: space-between; gap: 12px; font-variant-numeric: tabular-nums; }
+.day:first-child { margin-top: 0; }
+.entry { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 14px; width: 100%; padding: 12px 14px; margin-bottom: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 0; text-align: left; cursor: pointer; }
+.entry:hover { border-color: var(--muted); }
+.entry.editing { border-color: var(--action); box-shadow: inset 4px 0 0 var(--action); }
+.e-title { font-weight: 600; overflow-wrap: anywhere; }
+.e-title span { font-weight: 400; }
+.e-hours { grid-column: 2; grid-row: 1 / span 2; font: 700 26px/1 var(--display); font-variant-numeric: tabular-nums; text-align: right; }
+.e-hours small { display: block; font: 400 12px/1.3 var(--body); color: var(--muted); }
+.e-text { grid-column: 1; white-space: pre-line; overflow-wrap: anywhere; }
+.e-meta { grid-column: 1 / -1; margin-top: 4px; font-size: 14px; color: var(--muted); white-space: pre-line; overflow-wrap: anywhere; }
+.empty { background: var(--surface); border: 1px dashed var(--muted); padding: 20px 16px; color: var(--muted); }
+
+.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: grid; grid-template-columns: 1fr 1fr; background: var(--head); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.tab { min-height: 58px; border: 0; background: transparent; color: var(--head-muted); font: 600 19px/1 var(--display); cursor: pointer; border-top: 4px solid transparent; }
+.tab[aria-selected="true"] { color: var(--head-ink); border-top-color: var(--action); }
+
+#toast { position: fixed; left: 50%; bottom: calc(74px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 6; width: max-content; max-width: calc(100% - 32px); padding: 12px 16px; background: var(--ink); color: var(--bg); font-weight: 600; border-radius: 3px; box-shadow: 0 4px 18px rgba(0,0,0,.3); }
+
+#pin-screen { max-width: 360px; margin: 48px auto; padding: 0 16px; }
+
+@media (max-width: 899px) {
+  .panel:not(.active) { display: none; }
+  .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+  .chip { flex: 0 0 auto; white-space: nowrap; }
+}
+@media (min-width: 900px) {
+  .tabs { display: none; }
+  .app { grid-template-columns: 380px minmax(0, 1fr); align-items: start; padding-bottom: 40px; }
+  #panel-form { position: sticky; top: 16px; }
+  #toast { bottom: 24px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  #toast { animation: rise .16s ease-out; }
+  @keyframes rise { from { transform: translate(-50%, 8px); opacity: 0; } }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <h1 class="brand">Verkdagbók Rafplan</h1>
+    <div id="sync" role="status">Sæki gögn…</div>
+  </div>
+</header>
+
+<main class="app" id="app">
+  <section class="panel active" id="panel-form" aria-label="Skráning">
+    <form id="form" novalidate autocomplete="off">
+      <div class="form-head">
+        <h2 id="form-title">Ný skráning</h2>
+      </div>
+      <div class="field">
+        <label for="f-date">Dagsetning</label>
+        <input id="f-date" type="date" required>
+      </div>
+      <div class="field">
+        <label for="f-customer">Verkkaupi</label>
+        <div class="combo">
+          <input id="f-customer" required maxlength="120" autocapitalize="words" placeholder="Veldu eða skrifaðu nýjan" role="combobox" aria-autocomplete="list" aria-expanded="false">
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-project">Verkefni</label>
+        <input id="f-project" list="projects" required maxlength="200" autocapitalize="sentences">
+        <datalist id="projects"></datalist>
+      </div>
+      <div class="field">
+        <div class="mat-head">
+          <span>Hver vann verkið</span>
+          <span class="mat-qty">Tímar</span>
+          <span></span>
+        </div>
+        <div class="mat-rows" id="workers"></div>
+        <button class="btn btn-add" id="add-worker" type="button">+ Bæta við starfsmanni</button>
+        <p class="row-total" id="workers-total" hidden></p>
+      </div>
+      <div class="pair">
+        <div class="field">
+          <label for="f-akstur">Akstur <span class="opt">(klst)</span></label>
+          <input id="f-akstur" inputmode="decimal" placeholder="1,5">
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-work">Hvað var gert</label>
+        <textarea id="f-work" required maxlength="4000" autocapitalize="sentences"></textarea>
+      </div>
+      <div class="field">
+        <div class="mat-head">
+          <span>Hvaða efni var notað <span class="opt">(ef eitthvað)</span></span>
+          <span class="mat-qty">Magn</span>
+          <span></span>
+        </div>
+        <div class="mat-rows" id="materials"></div>
+        <button class="btn btn-add" id="add-material" type="button">+ Bæta við efni</button>
+      </div>
+      <p id="form-error" role="alert" hidden></p>
+      <div class="form-actions">
+        <button class="btn btn-main" id="save" type="submit">Vista</button>
+        <button class="btn" id="cancel" type="button" hidden>Hætta við</button>
+        <button class="btn btn-danger" id="delete" type="button" hidden>Eyða</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="panel" id="panel-list" aria-label="Yfirlit">
+    <div class="month-bar">
+      <button class="nav" id="prev" type="button" aria-label="Fyrri mánuður">‹</button>
+      <h2 id="month-label"></h2>
+      <button class="nav" id="next" type="button" aria-label="Næsti mánuður">›</button>
+    </div>
+    <div class="summary">
+      <div class="total" id="total"></div>
+      <button class="btn" id="export" type="button">Sækja Excel</button>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div id="list"></div>
+  </section>
+</main>
+
+<div id="pin-screen" hidden>
+  <form id="pin-form" novalidate>
+    <h2>Aðgangsorð</h2>
+    <div class="field">
+      <label for="pin">Sláðu inn aðgangsorðið sem þú fékkst</label>
+      <input id="pin" type="password" autocomplete="off">
+    </div>
+    <p id="pin-error" role="alert" hidden style="margin:0;color:var(--danger);font-weight:600">Rangt aðgangsorð.</p>
+    <div class="form-actions"><button class="btn btn-main" type="submit">Áfram</button></div>
+  </form>
+</div>
+
+<nav class="tabs" id="tabs" role="tablist">
+  <button class="tab" id="tab-form" type="button" role="tab" aria-selected="true">Skrá verk</button>
+  <button class="tab" id="tab-list" type="button" role="tab" aria-selected="false">Yfirlit</button>
+</nav>
+<div id="toast" role="status" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // Þegar síðan er hýst utan Google: settu /exec-slóðina úr Apps Script hér á milli gæsalappanna.
+  var API_URL = 'https://script.google.com/macros/s/AKfycbwL8LPvr9QpmaymIgjJ03HkJsnG3dQOiJzVX8Zv5o3J3oE2CVskBCvK5mnFphSxtBvy/exec';
+
+  var POLL_MS = 15000;
+  var EXCEL_LIB = {
+    urls: ['https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js', 'https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js'],
+    integrity: 'sha384-Pqp51FUN2/qzfxZxBCtF0stpc9ONI6MYZpVqmo8m20SoaQCzf+arZvACkLkirlPz'
+  };
+  var MONTHS = ['janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'];
+  var DAYS = ['sunnudagur', 'mánudagur', 'þriðjudagur', 'miðvikudagur', 'fimmtudagur', 'föstudagur', 'laugardagur'];
+  var $ = function (id) { return document.getElementById(id); };
+  var state = {
+    month: currentMonth(),
+    data: null,
+    dataKey: '',
+    filter: '',
+    editingId: null,
+    pendingId: null,
+    requestNo: 0,
+    deleteArmed: false
+  };
+
+  /* ---------- Hjálparföll ---------- */
+
+  function store(key, value) {
+    try {
+      if (value === undefined) return localStorage.getItem(key);
+      if (value === null) localStorage.removeItem(key); else localStorage.setItem(key, value);
+    } catch (e) { /* Einkagluggi eða lokað geymslusvæði: appið virkar samt. */ }
+    return null;
+  }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function today() { var d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function currentMonth() { return today().slice(0, 7); }
+  function shiftMonth(month, delta) {
+    var parts = month.split('-');
+    var d = new Date(+parts[0], +parts[1] - 1 + delta, 1);
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1);
+  }
+  function monthLabel(month) { var p = month.split('-'); return MONTHS[+p[1] - 1] + ' ' + p[0]; }
+  function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function dayLabel(date) {
+    var p = date.split('-');
+    var d = new Date(+p[0], +p[1] - 1, +p[2]);
+    return capitalize(DAYS[d.getDay()]) + ' ' + (+p[2]) + '. ' + MONTHS[+p[1] - 1];
+  }
+  function fmtHours(h) { return String(Math.round(h * 100) / 100).replace('.', ','); }
+  function hoursUnit(h) {
+    var isWhole = Math.round(h) === Math.round(h * 100) / 100;
+    var r = Math.round(h);
+    return isWhole && r % 10 === 1 && r % 100 !== 11 ? 'tími' : 'tímar';
+  }
+  function sumHours(list) { return list.reduce(function (s, e) { return s + (e.hours || 0); }, 0); }
+  function sumAkstur(list) { return list.reduce(function (s, e) { return s + (+e.akstur || 0); }, 0); }
+  function newId() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+  }
+  function el(tag, cls, text) {
+    var node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+  function call(fn) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    if (window.google && google.script && google.script.run) {
+      return new Promise(function (resolve, reject) {
+        var runner = google.script.run.withSuccessHandler(resolve).withFailureHandler(reject);
+        runner[fn].apply(runner, args);
+      });
+    }
+    if (!API_URL) return Promise.reject(new Error('Slóð á Apps Script vantar í API_URL efst í forritinu.'));
+    // Án Google-kex skiptir ekki máli á hve marga Google-aðganga vafrinn er skráður inn.
+    // text/plain sleppir CORS-forspurn, sem Apps Script svarar ekki.
+    return fetch(API_URL, {
+      method: 'POST',
+      credentials: 'omit',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ fn: fn, args: args })
+    }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (out) {
+      if (out.error) throw new Error(out.error);
+      return out.value;
+    });
+  }
+  function errorText(err) {
+    var msg = err && err.message ? String(err.message).replace(/^Error:\s*/, '') : '';
+    if (msg === 'PIN_REQUIRED') return msg;
+    if (/[áéíóúýþæðö]/i.test(msg)) return msg;
+    return 'Náði ekki sambandi. Athugaðu netið og reyndu aftur.';
+  }
+  function toast(text) {
+    var t = $('toast');
+    t.textContent = text;
+    t.hidden = false;
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(function () { t.hidden = true; }, 3500);
+  }
+  function pin() { return store('vd-pin') || ''; }
+
+  /* ---------- Gögn og uppfærslur ---------- */
+
+  function refresh() {
+    var no = ++state.requestNo;
+    var month = state.month;
+    return call('getData', month, pin()).then(function (data) {
+      if (no !== state.requestNo) return;
+      var key = JSON.stringify(data);
+      if (key !== state.dataKey) {
+        state.dataKey = key;
+        state.data = data;
+        render();
+      }
+      var now = new Date();
+      setSync('Uppfært kl. ' + pad(now.getHours()) + ':' + pad(now.getMinutes()), false);
+    }).catch(function (err) {
+      if (no !== state.requestNo) return;
+      var text = errorText(err);
+      if (text === 'PIN_REQUIRED') { showPin(!!pin()); return; }
+      var offline = text.indexOf('Náði ekki sambandi') === 0;
+      setSync(offline ? 'Næ ekki sambandi, reyni aftur' : text, true);
+      if (!state.data) renderLoadError(offline ? '' : text);
+    });
+  }
+  function setSync(text, bad) {
+    var s = $('sync');
+    s.textContent = text;
+    s.className = bad ? 'bad' : '';
+  }
+  function showPin(wrong) {
+    $('app').hidden = true;
+    $('tabs').hidden = true;
+    $('pin-screen').hidden = false;
+    $('pin-error').hidden = !wrong;
+    setSync('', false);
+  }
+  function renderLoadError(message) {
+    var list = $('list');
+    list.textContent = '';
+    list.appendChild(el('div', 'empty', message || 'Náði ekki að sækja skráningarnar. Reyni aftur sjálfkrafa þegar netið kemur inn.'));
+  }
+
+  /* ---------- Yfirlit ---------- */
+
+  function visibleEntries() {
+    var entries = state.data ? state.data.entries : [];
+    if (!state.filter) return entries;
+    return entries.filter(function (e) { return e.customer.toLowerCase() === state.filter; });
+  }
+
+  function render() {
+    $('month-label').textContent = capitalize(monthLabel(state.month));
+    var data = state.data;
+    if (!data || data.month !== state.month) return;
+
+    updateProjectSuggestions();
+
+    var all = data.entries;
+    var groups = {};
+    all.forEach(function (e) {
+      var k = e.customer.toLowerCase();
+      if (!groups[k]) groups[k] = { key: k, name: e.customer, hours: 0 };
+      groups[k].hours += e.hours;
+    });
+    if (state.filter && !groups[state.filter]) state.filter = '';
+
+    var chips = $('chips');
+    chips.textContent = '';
+    var names = Object.keys(groups).map(function (k) { return groups[k]; }).sort(function (a, b) { return a.name.localeCompare(b.name, 'is'); });
+    if (names.length > 1) {
+      chips.appendChild(chip('Allir', sumHours(all), ''));
+      names.forEach(function (g) { chips.appendChild(chip(g.name, g.hours, g.key)); });
+    }
+
+    var shown = visibleEntries();
+    var total = sumHours(shown);
+    var totalEl = $('total');
+    totalEl.textContent = fmtHours(total) + ' ' + hoursUnit(total);
+    var driving = sumAkstur(shown);
+    var small = el('small', '', (shown.length === 1 ? '1 skráning' : shown.length + ' skráningar') + (driving ? ' · Akstur ' + fmtHours(driving) + ' klst' : ''));
+    totalEl.appendChild(small);
+
+    var exportBtn = $('export');
+    exportBtn.disabled = all.length === 0;
+    exportBtn.textContent = 'Sækja Excel fyrir ' + MONTHS[+state.month.split('-')[1] - 1];
+
+    var list = $('list');
+    list.textContent = '';
+    if (!shown.length) {
+      list.appendChild(el('div', 'empty', 'Engin verk skráð í ' + monthLabel(state.month) + '. Skráningar birtast hér um leið og einhver vistar.'));
+      return;
+    }
+    var currentDate = null;
+    shown.forEach(function (e) {
+      if (e.date !== currentDate) {
+        currentDate = e.date;
+        var head = el('div', 'day');
+        head.appendChild(el('span', '', dayLabel(e.date)));
+        var dayTotal = sumHours(shown.filter(function (x) { return x.date === e.date; }));
+        head.appendChild(el('span', '', fmtHours(dayTotal) + ' ' + hoursUnit(dayTotal)));
+        list.appendChild(head);
+      }
+      list.appendChild(entryRow(e));
+    });
+  }
+
+  function chip(label, hours, key) {
+    var b = el('button', 'chip', label + ' · ' + fmtHours(hours));
+    b.type = 'button';
+    b.setAttribute('aria-pressed', String(state.filter === key));
+    b.addEventListener('click', function () { state.filter = key; render(); });
+    return b;
+  }
+
+  function entryRow(e) {
+    var b = el('button', 'entry' + (state.editingId === e.id ? ' editing' : ''));
+    b.type = 'button';
+    b.setAttribute('aria-label', 'Breyta skráningu: ' + e.customer + ', ' + e.project);
+    var title = el('div', 'e-title', e.customer);
+    title.appendChild(el('span', '', ' · ' + e.project));
+    b.appendChild(title);
+    var hours = el('div', 'e-hours', fmtHours(e.hours));
+    hours.appendChild(el('small', '', hoursUnit(e.hours)));
+    b.appendChild(hours);
+    b.appendChild(el('div', 'e-text', e.work));
+    var meta = workerLabel(e) + (e.akstur ? ' · Akstur ' + fmtHours(e.akstur) + ' klst' : '');
+    b.appendChild(el('div', 'e-meta', meta + (e.material ? '\nEfni: ' + e.material.split('\n').join(', ') : '')));
+    b.addEventListener('click', function () { startEdit(e); });
+    return b;
+  }
+
+  function fillDatalist(id, values) {
+    var list = $(id);
+    list.textContent = '';
+    (values || []).forEach(function (v) {
+      var o = document.createElement('option');
+      o.value = v;
+      list.appendChild(o);
+    });
+  }
+  function updateProjectSuggestions() {
+    var projects = state.data ? state.data.suggestions.projects : {};
+    fillDatalist('projects', projects[$('f-customer').value.trim().toLowerCase()] || []);
+  }
+
+  /* ---------- Fellilistar þar sem má líka skrifa ---------- */
+
+  function suggestions(name) {
+    return state.data && state.data.suggestions[name] ? state.data.suggestions[name] : [];
+  }
+
+  function makeCombo(input, opts) {
+    var wrap = input.parentNode;
+    var list = document.createElement('ul');
+    list.className = 'combo-list';
+    list.setAttribute('role', 'listbox');
+    list.hidden = true;
+    var toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'combo-toggle';
+    toggle.tabIndex = -1;
+    toggle.textContent = '▼';
+    toggle.setAttribute('aria-label', 'Opna lista');
+    wrap.appendChild(toggle);
+    wrap.appendChild(list);
+
+    var typed = false;
+    var picking = false;
+    var items = [];
+    var active = -1;
+
+    function build() {
+      var text = typed ? input.value.trim() : '';
+      var lower = text.toLowerCase();
+      var options = opts.options();
+      items = options.filter(function (o) { return !lower || o.toLowerCase().indexOf(lower) >= 0; })
+        .map(function (o) { return { value: o, add: false }; });
+      if (text && !options.some(function (o) { return o.toLowerCase() === lower; })) items.push({ value: text, add: true });
+      active = -1;
+      list.textContent = '';
+      items.forEach(function (item, i) {
+        var li = el('li', item.add ? 'add' : '', (item.add ? opts.addLabel + ': ' : '') + item.value);
+        li.setAttribute('role', 'option');
+        li.addEventListener('click', function () { pick(item); });
+        list.appendChild(li);
+      });
+    }
+    function open() {
+      build();
+      list.hidden = items.length === 0;
+      input.setAttribute('aria-expanded', String(!list.hidden));
+      if (!list.hidden) list.scrollIntoView({ block: 'nearest' });
+    }
+    function close() {
+      list.hidden = true;
+      input.setAttribute('aria-expanded', 'false');
+    }
+    function pick(item) {
+      typed = false;
+      input.value = item.value;
+      close();
+      picking = true; // Uppfærir drög og verkefnatillögur án þess að listinn opnist aftur.
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      picking = false;
+    }
+    function highlight(index) {
+      active = index;
+      Array.prototype.forEach.call(list.children, function (li, i) {
+        li.classList.toggle('active', i === active);
+        if (i === active) li.scrollIntoView({ block: 'nearest' });
+      });
+    }
+
+    input.setAttribute('autocomplete', 'off');
+    input.addEventListener('input', function () {
+      if (picking) return;
+      typed = true;
+      open();
+    });
+    input.addEventListener('focus', function () { typed = false; open(); });
+    input.addEventListener('click', function () { if (list.hidden) { typed = false; open(); } });
+    input.addEventListener('keydown', function (ev) {
+      if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+        ev.preventDefault();
+        if (list.hidden) open();
+        if (items.length) highlight((active + (ev.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length);
+      } else if (ev.key === 'Enter') {
+        if (!list.hidden && active >= 0) { ev.preventDefault(); pick(items[active]); }
+        else if (!list.hidden) { ev.preventDefault(); close(); }
+      } else if (ev.key === 'Escape') {
+        close();
+      }
+    });
+    // Heldur fókus í reitnum þegar smellt er í listann, annars lokast hann áður en valið skráist.
+    list.addEventListener('mousedown', function (ev) { ev.preventDefault(); });
+    toggle.addEventListener('mousedown', function (ev) { ev.preventDefault(); });
+    toggle.addEventListener('click', function () {
+      if (list.hidden) { typed = false; open(); } else close();
+    });
+    wrap.addEventListener('focusout', function (ev) {
+      if (ev.relatedTarget && wrap.contains(ev.relatedTarget)) return;
+      close();
+    });
+  }
+
+  // Lokar opnum lista þegar smellt er utan hans, líka ef hann var opnaður með örinni.
+  document.addEventListener('pointerdown', function (ev) {
+    Array.prototype.forEach.call(document.querySelectorAll('.combo-list:not([hidden])'), function (list) {
+      if (!list.parentNode.contains(ev.target)) list.hidden = true;
+    });
+  });
+
+  /* ---------- Starfsmenn og tímar ---------- */
+
+  function addWorkerRow(name, hours) {
+    var row = el('div', 'mat-row');
+    var combo = el('div', 'combo');
+    var nameInput = document.createElement('input');
+    nameInput.className = 'worker-name';
+    nameInput.maxLength = 60;
+    nameInput.placeholder = 'Veldu eða skrifaðu nafn';
+    nameInput.value = name || '';
+    nameInput.setAttribute('aria-label', 'Hver vann verkið');
+    nameInput.setAttribute('autocapitalize', 'words');
+    combo.appendChild(nameInput);
+    var hoursInput = document.createElement('input');
+    hoursInput.className = 'worker-hours';
+    hoursInput.inputMode = 'decimal';
+    hoursInput.placeholder = '7,5';
+    hoursInput.value = hours || '';
+    hoursInput.setAttribute('aria-label', 'Tímar');
+    var remove = el('button', 'icon-btn', '×');
+    remove.type = 'button';
+    remove.setAttribute('aria-label', 'Taka starfsmann út');
+    remove.addEventListener('click', function () {
+      row.remove();
+      if (!$('workers').children.length) addWorkerRow();
+      updateWorkersTotal();
+      saveDraft();
+    });
+    row.appendChild(combo);
+    row.appendChild(hoursInput);
+    row.appendChild(remove);
+    $('workers').appendChild(row);
+    makeCombo(nameInput, {
+      // Þeir sem eru þegar á verkinu birtast ekki aftur í hinum línunum.
+      options: function () {
+        var taken = collectWorkers().filter(function (w) { return w.input !== nameInput; }).map(function (w) { return w.name.toLowerCase(); });
+        return suggestions('workers').filter(function (n) { return taken.indexOf(n.toLowerCase()) < 0; });
+      },
+      addLabel: 'Bæta við'
+    });
+    return nameInput;
+  }
+  function collectWorkers() {
+    return Array.prototype.map.call($('workers').children, function (row) {
+      var nameInput = row.querySelector('.worker-name');
+      var hoursInput = row.querySelector('.worker-hours');
+      return { name: nameInput.value.replace(/[,:]/g, ' ').replace(/\s+/g, ' ').trim(), hours: hoursInput.value.trim(), input: nameInput, hoursInput: hoursInput };
+    }).filter(function (w) { return w.name || w.hours; });
+  }
+  function setWorkers(list) {
+    $('workers').textContent = '';
+    (list || []).forEach(function (w) { addWorkerRow(w.name, w.hours); });
+    if (!$('workers').children.length) addWorkerRow();
+    updateWorkersTotal();
+  }
+  function updateWorkersTotal() {
+    var rows = collectWorkers();
+    var total = rows.reduce(function (sum, w) { return sum + (isNumber(w.hours) ? parseFloat(w.hours.replace(',', '.')) : 0); }, 0);
+    var box = $('workers-total');
+    box.hidden = rows.length < 2;
+    box.textContent = 'Samtals ' + fmtHours(total) + ' ' + hoursUnit(total);
+  }
+  // Les "Jón: 5" línur, og líka eldri skráningar þar sem aðeins nöfnin voru vistuð.
+  function parseWorkers(e) {
+    var text = String(e.worker || '');
+    if (text.indexOf(':') >= 0) {
+      return text.split('\n').map(function (l) { return l.trim(); }).filter(Boolean).map(function (line) {
+        var m = /^(.*\S):\s*([\d.,]+)$/.exec(line);
+        return m ? { name: m[1], hours: m[2] } : { name: line, hours: '' };
+      });
+    }
+    var names = text.split(/[,\n]/).map(function (n) { return n.trim(); }).filter(Boolean);
+    return names.map(function (name) { return { name: name, hours: names.length === 1 ? fmtHours(e.hours) : '' }; });
+  }
+  function workerLabel(e) {
+    var list = parseWorkers(e);
+    return list.map(function (w) { return list.length > 1 && w.hours ? w.name + ' ' + w.hours : w.name; }).join(' · ');
+  }
+  function rememberedWorker() {
+    try {
+      var saved = JSON.parse(store('vd-workers') || 'null');
+      if (Array.isArray(saved) && typeof saved[0] === 'string') return saved[0];
+    } catch (e) { /* Skemmt gildi: byrjum tómt. */ }
+    return '';
+  }
+
+  /* ---------- Efni og magn ---------- */
+
+  function addMaterialRow(name, qty) {
+    var row = el('div', 'mat-row');
+    var combo = el('div', 'combo');
+    var nameInput = document.createElement('input');
+    nameInput.className = 'mat-name';
+    nameInput.maxLength = 120;
+    nameInput.placeholder = 'Veldu eða skrifaðu';
+    nameInput.value = name || '';
+    nameInput.setAttribute('aria-label', 'Efni');
+    nameInput.setAttribute('autocapitalize', 'sentences');
+    combo.appendChild(nameInput);
+    var qtyInput = document.createElement('input');
+    qtyInput.className = 'mat-amount';
+    qtyInput.inputMode = 'decimal';
+    qtyInput.value = qty == null ? '1' : qty;
+    qtyInput.setAttribute('aria-label', 'Magn');
+    var remove = el('button', 'icon-btn', '×');
+    remove.type = 'button';
+    remove.setAttribute('aria-label', 'Taka efni út');
+    remove.addEventListener('click', function () {
+      row.remove();
+      if (!$('materials').children.length) addMaterialRow();
+      saveDraft();
+    });
+    row.appendChild(combo);
+    row.appendChild(qtyInput);
+    row.appendChild(remove);
+    $('materials').appendChild(row);
+    makeCombo(nameInput, {
+      options: function () { return suggestions('materials'); },
+      addLabel: 'Nýtt efni'
+    });
+    return nameInput;
+  }
+  function collectMaterials() {
+    return Array.prototype.map.call($('materials').children, function (row) {
+      return { name: row.querySelector('.mat-name').value.trim(), qty: row.querySelector('.mat-amount').value.trim() };
+    }).filter(function (m) { return m.name; });
+  }
+  function setMaterials(list) {
+    $('materials').textContent = '';
+    (list || []).forEach(function (m) { addMaterialRow(m.name, m.qty); });
+    if (!$('materials').children.length) addMaterialRow();
+  }
+  function parseMaterials(text) {
+    return String(text || '').split('\n').map(function (l) { return l.trim(); }).filter(Boolean).map(function (line) {
+      var m = /^(.*\S) x ([\d.,]+)$/.exec(line);
+      return m ? { name: m[1], qty: m[2] } : { name: line, qty: '' };
+    });
+  }
+
+  /* ---------- Skráningarform ---------- */
+
+  var DRAFT_FIELDS = ['customer', 'project', 'akstur', 'work'];
+
+  function saveDraft() {
+    if (state.editingId) return;
+    var draft = {};
+    DRAFT_FIELDS.forEach(function (f) { draft[f] = $('f-' + f).value; });
+    draft.materials = collectMaterials();
+    draft.workers = collectWorkers().map(function (w) { return { name: w.name, hours: w.hours }; });
+    var hasContent = draft.materials.length || DRAFT_FIELDS.some(function (f) { return draft[f]; })
+      || draft.workers.some(function (w) { return w.hours; });
+    store('vd-draft', hasContent ? JSON.stringify(draft) : null);
+  }
+  function restoreDraft() {
+    try {
+      var draft = JSON.parse(store('vd-draft') || 'null');
+      if (draft) {
+        DRAFT_FIELDS.forEach(function (f) { $('f-' + f).value = draft[f] || ''; });
+        setMaterials(draft.materials);
+        if (draft.workers && draft.workers.length) setWorkers(draft.workers);
+      }
+    } catch (e) { /* Skemmd drög: byrjum með autt form. */ }
+  }
+
+  function resetForm(keepDate) {
+    var date = keepDate ? $('f-date').value : today();
+    $('form').reset();
+    $('f-date').value = date;
+    var remembered = rememberedWorker();
+    setWorkers(remembered ? [{ name: remembered, hours: '' }] : []);
+    setMaterials([]);
+    state.editingId = null;
+    state.pendingId = null;
+    disarmDelete();
+    $('form-title').textContent = 'Ný skráning';
+    $('save').textContent = 'Vista';
+    $('cancel').hidden = true;
+    $('delete').hidden = true;
+    showFormError('');
+    updateProjectSuggestions();
+  }
+
+  function startEdit(e) {
+    state.editingId = e.id;
+    disarmDelete();
+    $('f-date').value = e.date;
+    $('f-customer').value = e.customer;
+    $('f-project').value = e.project;
+    $('f-akstur').value = e.akstur === '' || e.akstur == null ? '' : fmtHours(e.akstur);
+    setWorkers(parseWorkers(e));
+    $('f-work').value = e.work;
+    setMaterials(parseMaterials(e.material));
+    $('form-title').textContent = 'Breyta skráningu';
+    $('save').textContent = 'Vista breytingar';
+    $('cancel').hidden = false;
+    $('delete').hidden = false;
+    showFormError('');
+    updateProjectSuggestions();
+    showTab('form');
+    render();
+  }
+
+  function showFormError(text) {
+    var box = $('form-error');
+    box.textContent = text;
+    box.hidden = !text;
+  }
+
+  function isNumber(text) { return /^[\d.,]+$/.test(text) && isFinite(parseFloat(text.replace(',', '.'))); }
+
+  function validate(entry) {
+    if (!entry.date) return [$('f-date'), 'Veldu dagsetningu.'];
+    if (!entry.customer) return [$('f-customer'), 'Skráðu verkkaupa.'];
+    if (!entry.project) return [$('f-project'), 'Skráðu verkefni.'];
+    var workers = collectWorkers();
+    if (!workers.length) return [$('workers').querySelector('.worker-name'), 'Skráðu hver vann verkið.'];
+    var seen = {};
+    for (var i = 0; i < workers.length; i++) {
+      var w = workers[i];
+      if (!w.name) return [w.input, 'Skráðu nafn á hverja línu sem er með tíma.'];
+      var key = w.name.toLowerCase();
+      if (seen[key]) return [w.input, w.name + ' er tvisvar á skráningunni. Leggðu tímana saman í eina línu.'];
+      seen[key] = true;
+      var h = isNumber(w.hours) ? parseFloat(w.hours.replace(',', '.')) : 0;
+      if (!(h > 0 && h <= 24)) return [w.hoursInput, w.name + ': tímar þurfa að vera tala á bilinu 0 til 24, t.d. 7,5.'];
+    }
+    var driving = isNumber(entry.akstur) ? parseFloat(entry.akstur.replace(',', '.')) : -1;
+    if (entry.akstur && !(driving >= 0 && driving <= 24)) return [$('f-akstur'), 'Akstur þarf að vera í klukkustundum, tala á bilinu 0 til 24, t.d. 1,5.'];
+    if (!entry.work) return [$('f-work'), 'Skráðu hvað var gert.'];
+    if (entry.materials.some(function (m) { return m.qty && !isNumber(m.qty); })) return [$('materials').querySelector('.mat-amount'), 'Magn þarf að vera tala, t.d. 3.'];
+    return null;
+  }
+
+  function submit(ev) {
+    ev.preventDefault();
+    var wasEditing = !!state.editingId;
+    // Sama auðkenni ef reynt er aftur eftir netvillu, svo skráningin tvöfaldist ekki.
+    if (!state.editingId && !state.pendingId) state.pendingId = newId();
+    var entry = {
+      id: state.editingId || state.pendingId,
+      date: $('f-date').value,
+      customer: $('f-customer').value.trim(),
+      project: $('f-project').value.trim(),
+      workers: collectWorkers().map(function (w) { return { name: w.name, hours: w.hours }; }),
+      akstur: $('f-akstur').value.trim(),
+      work: $('f-work').value.trim(),
+      materials: collectMaterials()
+    };
+    var problem = validate(entry);
+    if (problem) {
+      showFormError(problem[1]);
+      problem[0].focus();
+      return;
+    }
+    showFormError('');
+    var button = $('save');
+    button.disabled = true;
+    button.textContent = 'Vista…';
+    call('saveEntry', entry, pin()).then(function (result) {
+      store('vd-workers', JSON.stringify(entry.workers.map(function (w) { return w.name; })));
+      store('vd-draft', null);
+      toast(wasEditing ? 'Breytingar vistaðar' : 'Vistað: ' + fmtHours(result.hours) + ' ' + hoursUnit(result.hours) + ' hjá ' + result.customer);
+      resetForm(!wasEditing);
+      var month = entry.date.slice(0, 7);
+      if (month !== state.month) setMonth(month); else refresh();
+    }).catch(function (err) {
+      var text = errorText(err);
+      if (text === 'PIN_REQUIRED') { showPin(true); return; }
+      showFormError(text + ' Ekkert glataðist, reiturinn er óbreyttur.');
+    }).then(function () {
+      button.disabled = false;
+      button.textContent = state.editingId ? 'Vista breytingar' : 'Vista';
+    });
+  }
+
+  function disarmDelete() {
+    state.deleteArmed = false;
+    clearTimeout(disarmDelete.timer);
+    $('delete').textContent = 'Eyða';
+  }
+  function onDelete() {
+    if (!state.deleteArmed) {
+      state.deleteArmed = true;
+      $('delete').textContent = 'Staðfesta eyðingu';
+      disarmDelete.timer = setTimeout(disarmDelete, 5000);
+      return;
+    }
+    var id = state.editingId;
+    disarmDelete();
+    $('delete').disabled = true;
+    call('deleteEntry', id, pin()).then(function () {
+      toast('Skráningu eytt');
+      resetForm(false);
+      refresh();
+    }).catch(function (err) {
+      showFormError(errorText(err));
+    }).then(function () { $('delete').disabled = false; });
+  }
+
+  /* ---------- Excel ---------- */
+
+  function loadExcelLib() {
+    if (window.ExcelJS) return Promise.resolve();
+    if (loadExcelLib.promise) return loadExcelLib.promise;
+    function attempt(i) {
+      return new Promise(function (resolve, reject) {
+        var s = document.createElement('script');
+        s.src = EXCEL_LIB.urls[i];
+        s.integrity = EXCEL_LIB.integrity;
+        s.crossOrigin = 'anonymous';
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      }).catch(function () {
+        if (i + 1 < EXCEL_LIB.urls.length) return attempt(i + 1);
+        loadExcelLib.promise = null;
+        throw new Error('excel-lib');
+      });
+    }
+    loadExcelLib.promise = attempt(0);
+    return loadExcelLib.promise;
+  }
+
+  // Excel leyfir mest 31 staf í nafni, ekki \ / ? * [ ] :, og engin tvö eins óháð há- og lágstöfum.
+  function sheetName(raw, used) {
+    var base = String(raw).replace(/[\\\/?*\[\]:]/g, '-').replace(/^'+|'+$/g, '').trim() || 'Óþekktur';
+    var name = base.slice(0, 31);
+    var n = 2;
+    while (used[name.toLowerCase()] || name.toLowerCase() === 'history') {
+      var suffix = ' (' + n++ + ')';
+      name = base.slice(0, 31 - suffix.length) + suffix;
+    }
+    used[name.toLowerCase()] = true;
+    return name;
+  }
+
+  // Tímar hvers starfsmanns á skráningu, lyklað á nafn óháð há- og lágstöfum.
+  function hoursByWorker(e) {
+    var out = {};
+    parseWorkers(e).forEach(function (w) {
+      if (w.hours) out[w.name.toLowerCase()] = parseFloat(w.hours.replace(',', '.'));
+    });
+    return out;
+  }
+  function unassignedHours(e) {
+    var byWorker = hoursByWorker(e);
+    var assigned = Object.keys(byWorker).reduce(function (sum, k) { return sum + byWorker[k]; }, 0);
+    return Math.round((e.hours - assigned) * 100) / 100;
+  }
+
+  // Dálkur fyrir hvern sem vann í mánuðinum, í sömu röð og í Listar-flipanum.
+  function workerColumns(rows, order) {
+    var names = {};
+    rows.forEach(function (e) {
+      parseWorkers(e).forEach(function (w) {
+        var k = w.name.toLowerCase();
+        if (w.hours && !names[k]) names[k] = w.name;
+      });
+    });
+    var ordered = [];
+    (order || []).forEach(function (name) {
+      var k = name.toLowerCase();
+      if (names[k]) { ordered.push({ key: k, name: name }); delete names[k]; }
+    });
+    Object.keys(names).sort(function (a, b) { return a.localeCompare(b, 'is'); }).forEach(function (k) {
+      ordered.push({ key: k, name: names[k] });
+    });
+    return ordered;
+  }
+
+  function addSheet(wb, name, rows, workers, showUnassigned) {
+    var ws = wb.addWorksheet(name, {
+      views: [{ state: 'frozen', ySplit: 1 }],
+      pageSetup: { orientation: 'landscape', paperSize: 9, fitToPage: true, fitToWidth: 1, fitToHeight: 0 }
+    });
+    ws.pageSetup.printTitlesRow = '1:1';
+    var hourColumns = workers.map(function (w, i) { return { header: w.name, key: 'w' + i, width: 9 }; });
+    if (showUnassigned) hourColumns.push({ header: 'Óskipt', key: 'unassigned', width: 9 });
+    hourColumns.push({ header: 'Tímar samtals', key: 'hours', width: 10 });
+    hourColumns.push({ header: 'Akstur (klst)', key: 'akstur', width: 9 });
+    var columns = [
+      { header: 'Dagsetning', key: 'date', width: 12 },
+      { header: 'Verkkaupi', key: 'customer', width: 24 },
+      { header: 'Verkefni', key: 'project', width: 26 },
+      { header: 'Hver vann verkið', key: 'worker', width: 20 }
+    ].concat(hourColumns, [
+      { header: 'Hvað var gert', key: 'work', width: 44 },
+      { header: 'Hvaða efni var notað', key: 'material', width: 32 }
+    ]);
+    ws.columns = columns;
+    var header = ws.getRow(1);
+    header.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+    header.height = 32;
+    header.eachCell(function (cell) {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF14202B' } };
+      cell.alignment = { vertical: 'middle', wrapText: true };
+    });
+    rows.forEach(function (e) {
+      var p = e.date.split('-');
+      var byWorker = hoursByWorker(e);
+      var values = {
+        date: new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])),
+        customer: e.customer, project: e.project,
+        worker: parseWorkers(e).map(function (w) { return w.name; }).join(', '),
+        hours: e.hours, work: e.work, material: e.material,
+        akstur: e.akstur === '' || e.akstur == null ? null : +e.akstur
+      };
+      workers.forEach(function (w, i) { values['w' + i] = byWorker[w.key] != null ? byWorker[w.key] : null; });
+      if (showUnassigned && unassignedHours(e) > 0) values.unassigned = unassignedHours(e);
+      var row = ws.addRow(values);
+      row.alignment = { vertical: 'top', wrapText: true };
+      row.getCell('date').numFmt = 'dd.mm.yyyy';
+      row.getCell('date').alignment = { vertical: 'top', horizontal: 'left' };
+      hourColumns.forEach(function (c) { row.getCell(c.key).numFmt = '0.00'; });
+    });
+    var last = rows.length + 1;
+    ws.autoFilter = 'A1:' + ws.getColumn(columns.length).letter + last;
+    var totalRow = ws.getRow(last + 1);
+    totalRow.getCell('project').value = 'Samtals';
+    // SUBTOTAL 109 leggur bara saman línurnar sem sjást, svo samtalan fylgir síunni.
+    hourColumns.forEach(function (c) {
+      var letter = ws.getColumn(c.key).letter;
+      var result = 0;
+      for (var r = 2; r <= last; r++) result += +ws.getRow(r).getCell(c.key).value || 0;
+      totalRow.getCell(c.key).value = { formula: 'SUBTOTAL(109,' + letter + '2:' + letter + last + ')', result: Math.round(result * 100) / 100 };
+      totalRow.getCell(c.key).numFmt = '0.00';
+    });
+    totalRow.font = { name: 'Calibri', size: 11, bold: true };
+    columns.forEach(function (c, i) {
+      totalRow.getCell(i + 1).border = { top: { style: 'thin' } };
+    });
+    return ws;
+  }
+
+  function buildWorkbook(data) {
+    var wb = new ExcelJS.Workbook();
+    wb.creator = 'Verkdagbók Rafplan';
+    var rows = data.entries.slice().sort(function (a, b) {
+      return a.date === b.date ? (a.created < b.created ? -1 : 1) : (a.date < b.date ? -1 : 1);
+    });
+    var workers = workerColumns(rows, data.suggestions.workers);
+    var showUnassigned = rows.some(function (e) { return unassignedHours(e) > 0; });
+    var used = {};
+    addSheet(wb, sheetName('Yfirlit', used), rows, workers, showUnassigned);
+
+    var groups = {};
+    rows.forEach(function (e) {
+      var k = e.customer.toLowerCase();
+      if (!groups[k]) groups[k] = { name: e.customer, rows: [] };
+      groups[k].rows.push(e);
+    });
+    Object.keys(groups).map(function (k) { return groups[k]; })
+      .sort(function (a, b) { return a.name.localeCompare(b.name, 'is'); })
+      .forEach(function (g) { addSheet(wb, sheetName(g.name, used), g.rows, workers, showUnassigned); });
+    return wb;
+  }
+
+  function exportExcel() {
+    var button = $('export');
+    var label = button.textContent;
+    var month = state.month;
+    button.disabled = true;
+    button.textContent = 'Bý til skjal…';
+    // Sæki nýjustu gögnin rétt áður, svo ekkert vanti sem var skráð fyrir nokkrum sekúndum.
+    Promise.all([call('getData', month, pin()), loadExcelLib()]).then(function (results) {
+      return buildWorkbook(results[0]).xlsx.writeBuffer();
+    }).then(function (buffer) {
+      var blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'Verkskraning_' + month + '.xlsx'; // ASCII: sum vafrar hunsa annars nafnið
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+      toast('Excel-skjalið er sótt');
+    }).catch(function (err) {
+      if (err && err.message === 'excel-lib') toast('Náði ekki að sækja Excel-hlutann. Athugaðu netið og reyndu aftur.');
+      else toast(errorText(err));
+    }).then(function () {
+      button.disabled = false;
+      button.textContent = label;
+    });
+  }
+
+  /* ---------- Flipar og mánuðir ---------- */
+
+  function showTab(name) {
+    var isForm = name === 'form';
+    $('panel-form').classList.toggle('active', isForm);
+    $('panel-list').classList.toggle('active', !isForm);
+    $('tab-form').setAttribute('aria-selected', String(isForm));
+    $('tab-list').setAttribute('aria-selected', String(!isForm));
+    window.scrollTo(0, 0);
+  }
+  function setMonth(month) {
+    state.month = month;
+    state.filter = '';
+    state.data = null;
+    state.dataKey = '';
+    $('month-label').textContent = capitalize(monthLabel(month));
+    $('total').textContent = '';
+    $('chips').textContent = '';
+    $('list').textContent = '';
+    $('export').disabled = true;
+    refresh();
+  }
+
+  /* ---------- Ræsing ---------- */
+
+  makeCombo($('f-customer'), {
+    options: function () { return suggestions('customers'); },
+    addLabel: 'Nýr verkkaupi'
+  });
+  $('add-worker').addEventListener('click', function () { addWorkerRow().focus(); updateWorkersTotal(); });
+  $('add-material').addEventListener('click', function () { addMaterialRow().focus(); });
+  $('form').addEventListener('submit', submit);
+  $('form').addEventListener('input', function () { updateWorkersTotal(); saveDraft(); });
+  $('f-customer').addEventListener('input', updateProjectSuggestions);
+  $('cancel').addEventListener('click', function () { resetForm(false); restoreDraft(); render(); });
+  $('delete').addEventListener('click', onDelete);
+  $('export').addEventListener('click', exportExcel);
+  $('prev').addEventListener('click', function () { setMonth(shiftMonth(state.month, -1)); });
+  $('next').addEventListener('click', function () { setMonth(shiftMonth(state.month, 1)); });
+  $('tab-form').addEventListener('click', function () { showTab('form'); });
+  $('tab-list').addEventListener('click', function () { showTab('list'); });
+  $('pin-form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    store('vd-pin', $('pin').value);
+    $('pin-screen').hidden = true;
+    $('app').hidden = false;
+    $('tabs').hidden = false;
+    setSync('Sæki gögn…', false);
+    refresh();
+  });
+  // Spyr ekki á meðan beðið er um aðgangsorð, annars færu sífellt röng orð til þjónsins.
+  function refreshIfActive() { if (!document.hidden && $('pin-screen').hidden) refresh(); }
+  document.addEventListener('visibilitychange', refreshIfActive);
+  window.addEventListener('focus', refreshIfActive);
+  setInterval(refreshIfActive, POLL_MS);
+
+  resetForm(false);
+  restoreDraft();
+  updateProjectSuggestions();
+  $('month-label').textContent = capitalize(monthLabel(state.month));
+  $('export').disabled = true;
+  refresh();
+})();
+</script>
+</body>
+</html>
